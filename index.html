@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>Floating Chaos Gravity Text</title>
+<title>Gravity Text Grid</title>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -13,9 +13,11 @@
         font-family: "Poppins", sans-serif;
         overflow: hidden;
         text-align: center;
-        margin-top: 80px;
+        margin-top: 60px;
     }
+
     h1 { margin-bottom: 10px; }
+
     button {
         margin-bottom: 20px;
         padding: 10px 20px;
@@ -23,7 +25,10 @@
         cursor: pointer;
         border-radius: 8px;
         border: none;
+        background: #22a6b3;
+        color: #fff;
     }
+
     .container {
         position: fixed;
         top: 0; left: 0;
@@ -32,85 +37,56 @@
         pointer-events: none;
         overflow: hidden;
     }
+
     .word {
         position: absolute;
-        opacity: 0.85;
+        opacity: 0.9;
         font-size: 20px;
-        animation: float 6s ease-in-out infinite;
-        transition: transform 2s ease-out, opacity 1.5s;
+        animation: float 5s ease-in-out infinite;
+        transition: transform 1.4s cubic-bezier(.10,.85,.30,1.3), opacity 0.8s;
     }
 
     @keyframes float {
         0%   { transform: translateY(0) translateX(0); }
-        50%  { transform: translateY(-18px) translateX(12px); }
+        50%  { transform: translateY(-18px) translateX(8px); }
         100% { transform: translateY(0) translateX(0); }
     }
 
-    /* 重力掉落動畫 */
-    .fall {
+    .falling {
         animation: none !important;
-        opacity: 0;
-        transform:
-            translate(
-                calc(var(--offsetX) * 1px),
-                calc(200px + var(--fallPower) * 200px)
-            )
-            rotate(calc(360deg * var(--r)));
+        opacity: 1;
     }
 </style>
 </head>
 <body>
 
-<h1>Gravity Chaos Text 🌌</h1>
-<button id="btnChaos">Unleash Gravity!</button>
+<h1>Gravity Text Grid ✨</h1>
+<button id="btnChaos">Drop!</button>
+
 <div class="container" id="textArea"></div>
 
 <script>
-// 顯示文字內容（可以換成任何語錄、詞語、表情）
+// 英文字庫
 const words = [
-  "Dream","Code","Create","Explore","Wonder","Galaxy","Nebula","Spark","Energy","Focus",
-  "Motion","Gravity","Light","Shadow","Future","Vision","Pixel","Render","Digital","Flow",
-  "Think","Imagine","Magic","Reality","Chaos","Order","Quantum","Logic","System","Signal",
-  "Hope","Universe","Beyond","Inspire","Breathe","Think","Repeat","Shift","Origin","Pulse",
-  "Night","Star","Glitch","Cyber","Wave","Dreamer","Build","Break","Rebuild","Awaken"
+  "Dream","Code","Create","Explore","Galaxy","Magic","Design","System","Energy","Vision",
+  "Digital","Future","Think","Imagine","Logic","Spark","Universe","Beyond","Awaken","Flow",
+  "Focus","Chaos","Order","Pattern","Light","Shadow","Star","Nebula","Quantum","Signal",
+  "Build","Break","Rebuild","Pixel","Render","Dreamer","Cyber","Wave","Night","Pulse",
+  "Soul","Idea","Mind","Shift","Origin","Force","Motion","Time","Space","Infinity"
 ];
 
-const count = 50; // 文字總數
+const rows = 5;
+const cols = 10;
+const spacingX = window.innerWidth / (cols + 1);
+const spacingY = (window.innerHeight * 0.6) / (rows + 1);
 const container = $("#textArea");
 
-// 均勻分布 + 少許亂數漂移
-for(let i = 0; i < count; i++){
-    const w = words[i % words.length];
-    const x = (i / count) * window.innerWidth + (Math.random() * 60 - 30);
-    const y = Math.random() * window.innerHeight * 0.8;
-
-    const fallPower = Math.random(); // 掉落長度隨機
-    const offsetX = (Math.random() - 0.5) * 200; // 水平亂散
+// 以 Grid 規律排列
+let index = 0;
+for (let r = 1; r <= rows; r++) {
+  for (let c = 1; c <= cols; c++) {
+    const w = words[index % words.length];
+    const x = spacingX * c;
+    const y = spacingY * r;
 
     container.append(`
-        <span class='word'
-            style='
-                left:${x}px;
-                top:${y}px;
-                --r:${Math.random()};
-                --fallPower:${fallPower};
-                --offsetX:${offsetX};
-            '
-        >${w}</span>
-    `);
-}
-
-// 按鈕事件：重力掉落
-$("#btnChaos").click(function () {
-    $(".word").addClass("fall");
-
-    // 停一點時間後回來
-    setTimeout(() => {
-        $(".word").removeClass("fall");
-    }, 3200);
-});
-</script>
-
-</body>
-</html>
-
