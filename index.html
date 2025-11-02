@@ -1,125 +1,124 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Gravity Text Grid</title>
+<title>Gravity Text Cloud ✨</title>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-    body {
-        background: #0d1117;
-        color: #fff;
-        font-family: "Poppins", sans-serif;
-        overflow: hidden;
-        text-align: center;
-        margin-top: 60px;
-    }
+body {
+    margin:0;
+    background:#111;
+    font-family:monospace;
+    overflow:hidden;
+}
 
-    h1 { margin-bottom: 10px; }
+h2 {
+    color:white;
+    text-align:center;
+    margin-top:20px;
+    font-size:26px;
+}
+button {
+    padding:8px 16px;
+    border:none;
+    background:#00bcd4;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:16px;
+}
+button:hover {
+    background:#00a2b6;
+}
 
-    button {
-        margin-bottom: 20px;
-        padding: 10px 20px;
-        font-size: 18px;
-        cursor: pointer;
-        border-radius: 8px;
-        border: none;
-        background: #22a6b3;
-        color: #fff;
-    }
+/* container covers full screen */
+.container {
+    display:flex;
+    flex-wrap:wrap;
+    width:100vw;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+    padding:20px;
+}
 
-    .container {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        overflow: hidden;
-    }
+/* text style */
+.word {
+    color:#eee;
+    font-size:22px;
+    opacity:0.95;
+    margin:12px;
+    position:absolute;
+    transition: transform 2.4s cubic-bezier(.10,.82,.23,1.2), 
+                opacity 1.4s ease;
+}
 
-    .word {
-        position: absolute;
-        opacity: 0.9;
-        font-size: 20px;
-        animation: float 5s ease-in-out infinite;
-        transition: transform 1.4s cubic-bezier(.10,.85,.30,1.3), opacity 0.8s;
-    }
-
-    @keyframes float {
-        0%   { transform: translateY(0) translateX(0); }
-        50%  { transform: translateY(-18px) translateX(8px); }
-        100% { transform: translateY(0) translateX(0); }
-    }
-
-    .falling {
-        animation: none !important;
-        opacity: 1;
-    }
+/* float animation */
+@keyframes float {
+    0% { transform:translateY(0)}
+    50% { transform:translateY(-8px)}
+    100% { transform:translateY(0)}
+}
+.word.float {
+    animation: float 4s ease-in-out infinite;
+}
 </style>
+
 </head>
 <body>
 
-<h1>Gravity Text Grid ✨</h1>
-<button id="btnChaos">Drop!</button>
+<h2>Gravity Text Cloud ✨</h2>
+<div style="text-align:center;margin-bottom:10px;">
+    <button id="dropBtn">Drop!</button>
+</div>
 
-<div class="container" id="textArea"></div>
+<div class="container"></div>
 
 <script>
-// 英文字庫
-const words = [
-  "Dream","Code","Create","Explore","Galaxy","Magic","Design","System","Energy","Vision",
-  "Digital","Future","Think","Imagine","Logic","Spark","Universe","Beyond","Awaken","Flow",
-  "Focus","Chaos","Order","Pattern","Light","Shadow","Star","Nebula","Quantum","Signal",
-  "Build","Break","Rebuild","Pixel","Render","Dreamer","Cyber","Wave","Night","Pulse",
-  "Soul","Idea","Mind","Shift","Origin","Force","Motion","Time","Space","Infinity"
-];
+$(document).ready(function(){
 
-const rows = 5;
-const cols = 10;
-const spacingX = window.innerWidth / (cols + 1);
-const spacingY = (window.innerHeight * 0.6) / (rows + 1);
-const container = $("#textArea");
+    const words = [
+        "Dream","Logic","Design","Future","Vision","Code","Space","Cloud",
+        "Pixel","Data","Mind","Create","Build","Spark","Motion","Flow",
+        "Learn","Think","Grow","Imagine","Energy","Light","AI","Dreamer",
+        "Explore","Inspire","Wonder","Fantasy","Memory","Universe","Harmony",
+        "Echo","Shadow","Bloom","Rise","Element","Canvas","Path","Time"
+    ];
 
-// 以 Grid 規律排列
-let index = 0;
-for (let r = 1; r <= rows; r++) {
-  for (let c = 1; c <= cols; c++) {
-    const w = words[index % words.length];
-    const x = spacingX * c;
-    const y = spacingY * r;
-
-    container.append(`
-      <span class='word'
-        data-x='${x}'
-        data-y='${y}'
-        style='left:${x}px; top:${y}px;'
-      >${w}</span>
-    `);
-    index++;
-  }
-}
-
-// 掉落
-$("#btnChaos").click(function () {
+    const container = $(".container");
+    const screenW = window.innerWidth;
     const screenH = window.innerHeight;
 
-    $(".word").each(function(){
-        const y = parseFloat($(this).attr("data-y"));
-        const fallDistance = screenH - y - 40;
+    // arrange words across screen but slightly randomized
+    words.forEach((w,i)=>{
+        const x = (i % 8) * (screenW/8) + (Math.random()*40 - 20);
+        const y = Math.floor(i/8) * (screenH/6) + (Math.random()*30 - 15);
 
-        $(this).addClass("falling");
-        $(this).css("transform", `translateY(${fallDistance}px) rotate(${(Math.random()*40-20)}deg)`);
+        const el = $(`<div class='word float'>${w}</div>`);
+        el.css({left:x, top:y});
+        el.data("home",{x,y});
+        container.append(el);
     });
 
-    // 回復
-    setTimeout(() => {
-        $(".word").css("transform", "translateY(0) rotate(0)");
-    }, 2500);
+    $("#dropBtn").click(()=>{
+        $(".word").each(function(){
+            $(this).removeClass("float").css({
+                transform:`translateY(${screenH}px) rotate(${Math.random()*60-30}deg)`
+            });
+        });
 
-    setTimeout(() => {
-        $(".word").removeClass("falling");
-    }, 3500);
+        setTimeout(()=>{
+            $(".word").each(function(){
+                const home = $(this).data("home");
+                $(this).css({transform:`translate(0,0)`});
+                setTimeout(()=>$(this).addClass("float"),1000);
+            });
+        },2600);
+    });
+
 });
 </script>
 
