@@ -1,61 +1,95 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8">
-  <title>My Fun GitHub Page</title>
+<meta charset="UTF-8">
+<title>Floating Chaos Text</title>
 
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <!-- Animate.css -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-
-  <style>
+<style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 80px;
-    }
-
-    #intro {
-      font-size: 24px;
-      margin-bottom: 20px;
-      display: none;
+        background: #0d1117;
+        color: #fff;
+        font-family: "Poppins", sans-serif;
+        overflow: hidden;
+        text-align: center;
     }
 
     button {
-      padding: 10px 20px;
-      font-size: 18px;
-      cursor: pointer;
-      border-radius: 8px;
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 8px;
+        border: none;
     }
-  </style>
+
+    .container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .word {
+        position: absolute;
+        opacity: 0.8;
+        font-size: 20px;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%   {transform: translateY(0) translateX(0);}
+        50%  {transform: translateY(-20px) translateX(10px);}
+        100% {transform: translateY(0) translateX(0);}
+    }
+
+    /* chaos mode */
+    .word.fall {
+        animation: none !important;
+        transition: transform 1.2s ease, opacity 1.2s ease;
+        opacity: 0;
+        transform: translate(
+            calc(-100px + 200px * var(--r)),
+            calc(200px + 300px * var(--r))
+        ) rotate(calc(360deg * var(--r)));
+    }
+</style>
 </head>
 <body>
 
-  <h1 class="animate__animated animate__fadeInDown">-歡迎來到我的神祕網頁-</h1>
-  <p id="intro">你知道嗎？我可以掉下去喔！</p>
+<h1>Floating Chaos Text </h1>
+<button id="btnChaos">Chaos!</button>
 
-  <button id="btnChange">讓文字掉下去！</button>
+<div class="container" id="textArea"></div>
 
-  <script>
-    // 初始淡入
-    $("#intro").fadeIn(1500);
+<script>
+const words = ["Hello","GitHub","Hi","🤣","Code","Fun","Web","✨","jQuery","CSS","Dream","Float","Magic","JS"];
+const container = $("#textArea");
 
-    // 點按鈕 → hinge 掉下去再回來
-    $("#btnChange").click(function(){
-      $("#intro")
-        .removeClass() // 清動畫 class
-        .addClass("animate__animated animate__hinge") // 掉下去
-        .one("animationend", function(){ // 動畫結束
-            $(this)
-              .removeClass()
-              .addClass("animate__animated animate__fadeInUp") // 回來
-              .text("哎呦！摔回來了！再按一次試試！")
-              .css("color", "purple");
-        });
-    });
-  </script>
+// 隨機產生文字
+for(let i = 0; i < 35; i++){
+    const w = words[Math.floor(Math.random() * words.length)];
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+
+    container.append(`<span class='word' style='left:${x}px; top:${y}px; --r:${Math.random()};'>${w}</span>`);
+}
+
+// chaos 按鈕
+$("#btnChaos").click(function () {
+
+    $(".word").addClass("fall");
+
+    // 2.5秒後 漸漸恢復
+    setTimeout(()=>{
+        $(".word").removeClass("fall");
+    }, 2500);
+});
+</script>
 
 </body>
 </html>
