@@ -90,3 +90,38 @@ for (let r = 1; r <= rows; r++) {
     const y = spacingY * r;
 
     container.append(`
+      <span class='word'
+        data-x='${x}'
+        data-y='${y}'
+        style='left:${x}px; top:${y}px;'
+      >${w}</span>
+    `);
+    index++;
+  }
+}
+
+// 掉落
+$("#btnChaos").click(function () {
+    const screenH = window.innerHeight;
+
+    $(".word").each(function(){
+        const y = parseFloat($(this).attr("data-y"));
+        const fallDistance = screenH - y - 40;
+
+        $(this).addClass("falling");
+        $(this).css("transform", `translateY(${fallDistance}px) rotate(${(Math.random()*40-20)}deg)`);
+    });
+
+    // 回復
+    setTimeout(() => {
+        $(".word").css("transform", "translateY(0) rotate(0)");
+    }, 2500);
+
+    setTimeout(() => {
+        $(".word").removeClass("falling");
+    }, 3500);
+});
+</script>
+
+</body>
+</html>
