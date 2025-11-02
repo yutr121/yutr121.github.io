@@ -2,8 +2,14 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <title>My Personal GitHub Page</title>
+  <title>My Fun GitHub Page</title>
+
+  <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,31 +23,39 @@
       display: none;
     }
 
-    #btnChange {
+    button {
       padding: 10px 20px;
       font-size: 18px;
       cursor: pointer;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Welcome to My GitHub Page 👋</h1>
-  <p id="intro">Hi, I'm the owner of this page. This text fades in with jQuery!</p>
+  <h1 class="animate__animated animate__fadeInDown">-歡迎來到我的神祕網頁-</h1>
+  <p id="intro">你知道嗎？我可以掉下去喔！</p>
 
-  <button id="btnChange">Click Me</button>
-  
+  <button id="btnChange">讓文字掉下去！</button>
+
   <script>
-    // 進頁面時文字淡入
-    $(document).ready(function(){
-      $("#intro").fadeIn(1500);
-    });
+    // 初始淡入
+    $("#intro").fadeIn(1500);
 
-    // 按按鈕換字 + 換顏色
+    // 點按鈕 → hinge 掉下去再回來
     $("#btnChange").click(function(){
-      $("#intro").text("You clicked the button! JQuery works 🎯")
-                 .css("color", "blue");
+      $("#intro")
+        .removeClass() // 清動畫 class
+        .addClass("animate__animated animate__hinge") // 掉下去
+        .one("animationend", function(){ // 動畫結束
+            $(this)
+              .removeClass()
+              .addClass("animate__animated animate__fadeInUp") // 回來
+              .text("哎呦！摔回來了！再按一次試試！")
+              .css("color", "purple");
+        });
     });
   </script>
+
 </body>
 </html>
