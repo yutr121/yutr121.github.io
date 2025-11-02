@@ -2,77 +2,91 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Gravity Text Cloud ✨</title>
+<title>Hinge Text Party 💥</title>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
 body {
     margin:0;
-    background:#111;
-    font-family:monospace;
+    background:#0d0d0d;
+    font-family: "Comic Sans MS", "Segoe UI", sans-serif;
     overflow:hidden;
+    color:white;
 }
 
 h2 {
-    color:white;
     text-align:center;
     margin-top:20px;
-    font-size:26px;
+    font-size:28px;
 }
 button {
-    padding:8px 16px;
+    padding:10px 22px;
     border:none;
-    background:#00bcd4;
+    background:#ff4d4d;
     color:white;
-    border-radius:6px;
+    border-radius:8px;
     cursor:pointer;
     font-size:16px;
+    transition:0.2s;
 }
 button:hover {
-    background:#00a2b6;
+    background:#d73838;
+    transform:scale(1.1);
 }
 
-/* container covers full screen */
 .container {
+    width:100vw;
+    height:80vh;
     display:flex;
     flex-wrap:wrap;
-    width:100vw;
-    height:100vh;
     justify-content:center;
     align-items:center;
     position:relative;
-    padding:20px;
+    pointer-events:none;
 }
 
-/* text style */
 .word {
-    color:#eee;
-    font-size:22px;
-    opacity:0.95;
-    margin:12px;
-    position:absolute;
-    transition: transform 2.4s cubic-bezier(.10,.82,.23,1.2), 
-                opacity 1.4s ease;
+    color:#fff76b;
+    font-size:24px;
+    margin:18px;
+    font-weight:bold;
+    transform-origin: top left;
+    display:inline-block;
+    transition: transform 0.4s ease-out;
 }
 
-/* float animation */
-@keyframes float {
-    0% { transform:translateY(0)}
-    50% { transform:translateY(-8px)}
-    100% { transform:translateY(0)}
+/* hinge animation */
+@keyframes hinge {
+    0%   { transform: rotate(0); }
+    20%  { transform: rotate(60deg); }
+    40%  { transform: rotate(80deg); }
+    60%  { transform: rotate(70deg) translateY(10px); }
+    80%  { transform: rotate(90deg) translateY(50px); }
+    100% { transform: rotate(90deg) translateY(200vh) }
 }
-.word.float {
-    animation: float 4s ease-in-out infinite;
+
+.word.hinge {
+    animation: hinge 2.2s forwards ease-in;
+}
+
+/* comeback animation */
+@keyframes revive {
+    0% { opacity:0; transform:scale(0.3) rotate(-30deg); }
+    60% { opacity:1; transform:scale(1.1) rotate(10deg); }
+    100% { transform:scale(1) rotate(0); }
+}
+.word.revive {
+    animation: revive 0.8s forwards ease-out;
 }
 </style>
-
 </head>
 <body>
 
-<h2>Gravity Text Cloud ✨</h2>
-<div style="text-align:center;margin-bottom:10px;">
-    <button id="dropBtn">Drop!</button>
+<h2>Hinge Text Party 💥🤣</h2>
+<div style="text-align:center;">
+<button id="dropBtn">LET THEM FALL!!! 😈</button>
+<button id="resetBtn" style="background:#4da6ff;margin-left:10px;">Bring Them Back 😇</button>
 </div>
 
 <div class="container"></div>
@@ -81,42 +95,43 @@ button:hover {
 $(document).ready(function(){
 
     const words = [
-        "Dream","Logic","Design","Future","Vision","Code","Space","Cloud",
-        "Pixel","Data","Mind","Create","Build","Spark","Motion","Flow",
-        "Learn","Think","Grow","Imagine","Energy","Light","AI","Dreamer",
-        "Explore","Inspire","Wonder","Fantasy","Memory","Universe","Harmony",
-        "Echo","Shadow","Bloom","Rise","Element","Canvas","Path","Time"
+        "LOL","Boom","Bye","Oof","Nope","Cya","WHOOPS","Gravity!!",
+        "Help","Why","Bro","Down","Crash","Boomer","Wasted","Oops",
+        "Falling","Yikes","ByeBye","Chaos","Splat","Drama","LOL",
+        "Wow","Flying?","No.","SendHelp","RIP","Yeet","Fate","Gone"
     ];
 
     const container = $(".container");
-    const screenW = window.innerWidth;
-    const screenH = window.innerHeight;
 
-    // arrange words across screen but slightly randomized
     words.forEach((w,i)=>{
-        const x = (i % 8) * (screenW/8) + (Math.random()*40 - 20);
-        const y = Math.floor(i/8) * (screenH/6) + (Math.random()*30 - 15);
-
-        const el = $(`<div class='word float'>${w}</div>`);
-        el.css({left:x, top:y});
-        el.data("home",{x,y});
+        const el = $(`<div class='word'>${w}</div>`);
         container.append(el);
+
+        // save home pos
+        const angleSpread = (i % 10) * 100;
+        $(el).css({
+            position:"relative",
+            left: Math.random()*40-20,
+            top: Math.random()*30-15
+        });
     });
 
     $("#dropBtn").click(()=>{
-        $(".word").each(function(){
-            $(this).removeClass("float").css({
-                transform:`translateY(${screenH}px) rotate(${Math.random()*60-30}deg)`
-            });
+        $(".word").each(function(i){
+            $(this).removeClass("revive");
+            setTimeout(()=>{
+                $(this).addClass("hinge");
+            }, i*120); // domino effect
         });
+    });
 
-        setTimeout(()=>{
-            $(".word").each(function(){
-                const home = $(this).data("home");
-                $(this).css({transform:`translate(0,0)`});
-                setTimeout(()=>$(this).addClass("float"),1000);
-            });
-        },2600);
+    $("#resetBtn").click(()=>{
+        $(".word").each(function(i){
+            $(this).removeClass("hinge");
+            setTimeout(()=>{
+                $(this).addClass("revive");
+            }, i*80);
+        });
     });
 
 });
@@ -124,3 +139,4 @@ $(document).ready(function(){
 
 </body>
 </html>
+
