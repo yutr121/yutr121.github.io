@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>Floating Chaos Text</title>
+<title>Floating Chaos Gravity Text</title>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -13,83 +13,104 @@
         font-family: "Poppins", sans-serif;
         overflow: hidden;
         text-align: center;
+        margin-top: 80px;
     }
-
+    h1 { margin-bottom: 10px; }
     button {
-        margin-top: 20px;
+        margin-bottom: 20px;
         padding: 10px 20px;
         font-size: 18px;
         cursor: pointer;
         border-radius: 8px;
         border: none;
     }
-
     .container {
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 0; left: 0;
         width: 100%;
         height: 100%;
         pointer-events: none;
         overflow: hidden;
     }
-
     .word {
         position: absolute;
-        opacity: 0.8;
+        opacity: 0.85;
         font-size: 20px;
         animation: float 6s ease-in-out infinite;
+        transition: transform 2s ease-out, opacity 1.5s;
     }
 
     @keyframes float {
-        0%   {transform: translateY(0) translateX(0);}
-        50%  {transform: translateY(-20px) translateX(10px);}
-        100% {transform: translateY(0) translateX(0);}
+        0%   { transform: translateY(0) translateX(0); }
+        50%  { transform: translateY(-18px) translateX(12px); }
+        100% { transform: translateY(0) translateX(0); }
     }
 
-    /* chaos mode */
-    .word.fall {
+    /* 重力掉落動畫 */
+    .fall {
         animation: none !important;
-        transition: transform 1.2s ease, opacity 1.2s ease;
         opacity: 0;
-        transform: translate(
-            calc(-100px + 200px * var(--r)),
-            calc(200px + 300px * var(--r))
-        ) rotate(calc(360deg * var(--r)));
+        transform:
+            translate(
+                calc(var(--offsetX) * 1px),
+                calc(200px + var(--fallPower) * 200px)
+            )
+            rotate(calc(360deg * var(--r)));
     }
 </style>
 </head>
 <body>
 
-<h1>Floating Chaos Text </h1>
-<button id="btnChaos">Chaos!</button>
-
+<h1>Gravity Chaos Text 🌌</h1>
+<button id="btnChaos">Unleash Gravity!</button>
 <div class="container" id="textArea"></div>
 
 <script>
-const words = ["Hello","GitHub","Hi","🤣","Code","Fun","Web","✨","jQuery","CSS","Dream","Float","Magic","JS"];
+// 顯示文字內容（可以換成任何語錄、詞語、表情）
+const words = [
+  "Dream","Code","Create","Explore","Wonder","Galaxy","Nebula","Spark","Energy","Focus",
+  "Motion","Gravity","Light","Shadow","Future","Vision","Pixel","Render","Digital","Flow",
+  "Think","Imagine","Magic","Reality","Chaos","Order","Quantum","Logic","System","Signal",
+  "Hope","Universe","Beyond","Inspire","Breathe","Think","Repeat","Shift","Origin","Pulse",
+  "Night","Star","Glitch","Cyber","Wave","Dreamer","Build","Break","Rebuild","Awaken"
+];
+
+const count = 50; // 文字總數
 const container = $("#textArea");
 
-// 隨機產生文字
-for(let i = 0; i < 35; i++){
-    const w = words[Math.floor(Math.random() * words.length)];
-    const x = Math.random() * window.innerWidth;
-    const y = Math.random() * window.innerHeight;
+// 均勻分布 + 少許亂數漂移
+for(let i = 0; i < count; i++){
+    const w = words[i % words.length];
+    const x = (i / count) * window.innerWidth + (Math.random() * 60 - 30);
+    const y = Math.random() * window.innerHeight * 0.8;
 
-    container.append(`<span class='word' style='left:${x}px; top:${y}px; --r:${Math.random()};'>${w}</span>`);
+    const fallPower = Math.random(); // 掉落長度隨機
+    const offsetX = (Math.random() - 0.5) * 200; // 水平亂散
+
+    container.append(`
+        <span class='word'
+            style='
+                left:${x}px;
+                top:${y}px;
+                --r:${Math.random()};
+                --fallPower:${fallPower};
+                --offsetX:${offsetX};
+            '
+        >${w}</span>
+    `);
 }
 
-// chaos 按鈕
+// 按鈕事件：重力掉落
 $("#btnChaos").click(function () {
-
     $(".word").addClass("fall");
 
-    // 2.5秒後 漸漸恢復
-    setTimeout(()=>{
+    // 停一點時間後回來
+    setTimeout(() => {
         $(".word").removeClass("fall");
-    }, 2500);
+    }, 3200);
 });
 </script>
 
 </body>
 </html>
+
