@@ -1,0 +1,153 @@
+
+#define NUM 16  // 保留16個LED位置，其中D3不使用
+
+int leds[NUM] = {
+    D0, D1, D2, -1, D4, D5, D6, D7,
+    D8, D9, D10, D11, D12, D13, D14, D15
+};
+
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+
+void setup()
+{
+    // 設定LED輸出腳位，跳過D3
+    for(int i = 0; i < NUM; i++)
+    {
+        if(leds[i] != -1)
+        {
+            digitalWrite(leds[i], HIGH);
+            pinMode(leds[i], OUTPUT);
+        }
+    }
+
+    // D3永遠保持熄滅
+    digitalWrite(D3, HIGH);
+    pinMode(D3, OUTPUT);
+
+    AllLEDsOff();
+}
+
+// 顯示LED，D3不參與動畫
+void displayLED(unsigned int light)
+{
+    for(int i = 0; i < NUM; i++)
+    {
+        if(leds[i] == -1)
+        {
+            continue;
+        }
+
+        if(light & (1U << i))
+            digitalWrite(leds[i], LOW);
+        else
+            digitalWrite(leds[i], HIGH);
+    }
+
+    delay(200);
+}
+
+/* Main program */
+void loop()
+{
+    if(!digitalRead(BUTTON1))
+    {
+        LEDDesign1(1, 2);
+        delay(200);
+        LEDDesign2(1, 2);
+    }
+
+    if(!digitalRead(BUTTON2))
+    {
+        LEDDesign1(2, 2);
+        delay(200);
+        LEDDesign2(2, 2);
+    }
+
+    if(!digitalRead(BUTTON3))
+    {
+        LEDDesign1(3, 2);
+        delay(200);
+        LEDDesign2(3, 2);
+    }
+
+    if(!digitalRead(BUTTON4))
+    {
+        LEDDesign1(4, 2);
+        delay(200);
+        LEDDesign2(4, 2);
+    }
+}
+
+// 關閉所有LED
+void AllLEDsOff()
+{
+    displayLED(0x0000);
+}
+
+// num = 1, 2, 3, 4
+// cnt = 重複次數
+void LEDDesign1(int num, int cnt)
+{
+    for(int i = 0; i < cnt; i++)
+    {
+        unsigned int A = 0x8000, a = 0x0100;
+        unsigned int B = 0x0080, b = 0x0001;
+
+        displayLED(A | a | B | b);
+
+        for(int j = 1; j < num; ++j)
+        {
+            A = A | (A >> 1);
+            a = a | (a << 1);
+            B = B | (B >> 1);
+            b = b | (b << 1);
+
+            displayLED(A | a | B | b);
+        }
+
+        for(int j = 0; j < 7; j++)
+        {
+            A = A >> 1;
+            a = a << 1;
+            B = B >> 1;
+            b = b << 1;
+
+            displayLED(A | a | B | b);
+        }
+
+        AllLEDsOff();
+    }
+}
+
+// num = 1, 2, 3, 4
+// cnt = 重複次數
+void LEDDesign2(int num, int cnt)
+{
+    for(int i = 0; i < cnt; i++)
+    {
+        unsigned int A = 0x4000, B = 0x0001;
+
+        displayLED(A | B);
+
+        for(int j = 1; j < num; ++j)
+        {
+            A = A | (A >> 1);
+            B = B | (B << 1);
+
+            displayLED(A | B);
+        }
+
+        for(int j = 0; j < 15; j++)
+        {
+            A = A >> 1;
+            B = B << 1;
+
+            displayLED(A | B);
+        }
+
+        AllLEDsOff();
+    }
+}

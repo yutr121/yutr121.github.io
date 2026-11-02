@@ -1,0 +1,105 @@
+
+#define NUM 16  // 16個LED位置，D3不使用
+
+int leds[NUM] = {
+    D0, D1, D2, -1, D4, D5, D6, D7,
+    D8, D9, D10, D11, D12, D13, D14, D15
+};
+
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+
+void setup()
+{
+    for(int i = 0; i < NUM; i++)
+    {
+        if(leds[i] != -1)
+        {
+            pinMode(leds[i], OUTPUT);
+        }
+    }
+
+    AllLEDsOff();
+}
+
+// 顯示LED，跳過D3
+void displayLED(unsigned int light)
+{
+    for(int i = 0; i < NUM; i++)
+    {
+        if(leds[i] == -1)
+            continue;
+
+        if(light & (1U << i))
+            digitalWrite(leds[i], LOW);
+        else
+            digitalWrite(leds[i], HIGH);
+    }
+
+    delay(200);
+}
+
+/* Main program */
+void loop()
+{
+    if(!digitalRead(BUTTON1))
+    {
+        LEDDesign2(1, 2);
+    }
+    else if(!digitalRead(BUTTON2))
+    {
+        LEDDesign2(2, 2);
+    }
+    else if(!digitalRead(BUTTON3))
+    {
+        LEDDesign2(3, 2);
+    }
+    else if(!digitalRead(BUTTON4))
+    {
+        LEDDesign2(4, 2);
+    }
+}
+
+// 關閉所有LED
+void AllLEDsOff()
+{
+    displayLED(0x0000);
+}
+
+// num = 1, 2, 3, 4
+// cnt = 重複次數
+void LEDDesign2(int num, int cnt)
+{
+    for(int k = 0; k < cnt; k++)
+    {
+        for(int i = 0; i < 16 + num; i++)
+        {
+            unsigned int A = 0;
+            unsigned int B = 0;
+
+            for(int j = 0; j < num; j++)
+            {
+                int left = 15 - i + j;
+                int right = i - j;
+
+                // 左側LED往右移動
+                if(left >= 0 && left < 16)
+                {
+                    A = A | (1U << left);
+                }
+
+                // 右側LED往左移動
+                if(right >= 0 && right < 16)
+                {
+                    B = B | (1U << right);
+                }
+            }
+
+            displayLED(A | B);
+        }
+
+        AllLEDsOff();
+    }
+}

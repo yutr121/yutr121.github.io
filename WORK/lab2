@@ -1,0 +1,319 @@
+/* Define shift register pins used for seven segment display */
+#define LATCH_DIO D15
+#define CLK_DIO D14
+#define DATA_DIO 2        // D2 is OK, too
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+
+/* Segment byte maps for numbers 0 to 9 , A, b , C */
+// MSB: dp g f e d c b a :LSB
+// 最後一個 0x00 是空白，供單獨顯示與跑馬燈使用。
+const byte SEGMENT_MAP[] = {
+    0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,
+    0x7F,0x6F,0x77,0x7C,0x39,0x00
+};
+const byte DP = 0x40;   // Digit Point
+byte Row=0, Col=0;
+
+/* Byte maps to select digit 1 to 4 */
+const byte SEGMENT_SELECT[] = {0x0E,0x0D,0x0B,0x07};
+
+// numbers[] 記錄最後按下的四個數字（由舊到新）
+// displayNum[] 是目前要顯示的內容；13 表示空白。
+byte numbers[4] = {13,13,13,13};
+byte displayNum[4] = {13,13,13,13};
+byte count = 0;
+
+bool showfinal = false;
+
+void setup ()
+{
+    /* Set DIO pins to outputs */
+    pinMode(LATCH_DIO, OUTPUT);
+    pinMode(CLK_DIO, OUTPUT);
+    pinMode(DATA_DIO, OUTPUT);
+    pinMode(10, INPUT); //R1: S1,S2,S3,S4 (1,2,3,A)
+    pinMode(11, INPUT_PULLUP); //R2: S5,S6,S7,S8 (4,5,6,B)
+    pinMode(12, INPUT_PULLUP); //R3: S9,S10,S11,S12 (7,8,9,C)
+    pinMode(13, INPUT_PULLUP); //R4: (*,0,#,D)
+    pinMode(A0, OUTPUT); //A1, C1: S1,S5,S9 (1,4,7,*)
+    pinMode(A1, OUTPUT); //A2, C2: S2,S6,S10 (2,5,8,0)
+    pinMode(A2, OUTPUT); //A3, C3: S3,S7,S11 (3,6,9,#)
+    pinMode(A3, OUTPUT); //A4, C4, S4,S8,S12 (*,0, #,D)  // (A, B, C, D) is correct.
+    //Pin left to right :R1 R2 R3 R4 C1 C2 C3 C4
+    digitalWrite(A0,HIGH);
+    digitalWrite(A1,HIGH);
+    digitalWrite(A2,HIGH);
+    digitalWrite(A3,HIGH);
+    pinMode(BUTTON3, INPUT_PULLUP);
+    pinMode(BUTTON4, INPUT_PULLUP);
+}
+
+/* Main program */
+void loop()
+{
+    static bool keyWasPressed = false;
+    if (keyscan())
+    {
+        showfinal = false;
+        if (!keyWasPressed)
+        {
+            delay(20);
+            if (keyscan())
+            {
+                keyWasPressed = true;
+                byte keyindex = 13;
+
+                //A部分
+                keyindex=(Row-1)*4+Col-1;
+                if(Col == 1) WriteNumberToSegment(0 , keyindex);
+                if(Col == 2) WriteNumberToSegment(1 , keyindex);
+                if(Col == 3) WriteNumberToSegment(2 , keyindex);
+                if(Col == 4) WriteNumberToSegment(3 , keyindex);
+
+                if (keyindex >= 0 && keyindex <= 9)
+                {
+                    // 背景記錄最後四個數字
+                    for (int i=0; i<3; i++) numbers[i] = numbers[i+1];
+                    numbers[3] = keyindex;
+                    if (count < 4) count++;
+                }
+            }
+        }
+    }
+    else
+    {
+        keyWasPressed = false;
+    }
+
+    // B 部分：BUTTON4 從左往右；BUTTON3 從右往左
+    if(!digitalRead(BUTTON4))
+    {
+        runningLight(true);
+    }
+    if(!digitalRead(BUTTON3))
+    {
+       runningLight(false);
+    }
+    if(showfinal == true) showDisplay();
+}
+
+// B 部分
+void runningLight(bool leftToRight)
+{
+    for (int step=0; step<8; step++)
+    {
+        // 每移動一步先把四個位置清空
+        for (int i=0; i<4; i++) displayNum[i] = 13;
+
+        // numbers[0]是四個數字中最先按下的，numbers[3]最後按下
+        for (int i=0; i<4; i++)
+        {
+            int pos;
+            if (leftToRight)
+                pos = step - (3-i);  //最後一個數字先從左邊進，逐格往右
+            else
+                pos = 3 - step + i; //第一個數字先從右邊進，逐格往左
+
+            // pos: 0 是最左邊，3 是最右邊
+            // 原本 SEGMENT_SELECT[3] 對應最左邊，[0] 對應最右邊
+            if (pos >= 0 && pos < 4)
+                displayNum[pos] = numbers[i];
+        }
+
+        unsigned long start = millis();
+        while (millis() - start < 350)
+            showDisplay();
+    }
+
+    // 四個數字全部飛出後，按輸入順序恢復為 1234，並靜止顯示
+    for (int i=0; i<4; i++)
+    {
+       displayNum[i] = numbers[i];
+    }
+    showfinal= true;
+
+}
+
+// 將目前 displayNum 的內容刷新到四個七段顯示位置
+void showDisplay()
+{
+    for (int i=0; i<4; i++)
+    {
+        WriteNumberToSegment(i, displayNum[i]);
+        delay(2);
+    }
+}
+
+bool keyscan( )
+{
+  Row=0;Col=0;
+  bool keypressed = false;
+  //scan col1
+  digitalWrite(A0, LOW);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+  //Read keys in row.1
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.2
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.3
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.4
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+  //scan col 2
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, LOW);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+  //Read keys in row.1
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+    //Read keys in row.2
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.3
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.4
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  //scan col 3
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, LOW);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+  //Read keys in row.1
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.2
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.3
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.4
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  //scan col 4
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, LOW);
+  delayMicroseconds(100);
+  //Read keys in row.1
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+    //Read keys in row.2
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.3
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+  //Read keys in row.4
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+  digitalWrite(A3, HIGH); // 掃描結束時，恢復未按下狀態
+  return(false);
+}
+
+/* Write a decimal number between 0 and 9 to one of the 4 digits of the display */
+void WriteNumberToSegment(byte Segment, byte Value)
+{
+    digitalWrite(LATCH_DIO, LOW);
+    // The following order cannot be changed. MAP first and then SELECT.
+    shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_MAP[Value]);
+    shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] );
+
+    digitalWrite(LATCH_DIO,HIGH);
+}
